@@ -1,28 +1,39 @@
-CC = cc
-CFLAGS = -Wall -Wextra -Werror -g -O3
-NAME = MiniRT
 
-SRCS = $(wildcard *.c)
-OBJS = $(SRCS:%.c=objs/%.o)
-HEADER = $(wildcard includes/*.h)
+NAME    := miniRT
+CC      := cc
+CFLAGS  := -Wall -Wextra -Werror -Iincludes -Imlx -Ilibft
+LDFLAGS := -Lmlx -lmlx -L/usr/lib -lXext -lX11 -lm -Llibft -lft
 
-LIBS = -lm -L. -lmlx -lX11 -lXext
+SRC_DIR := srcs
+OBJ_DIR := objs
+
+SRC := \
+	$(SRC_DIR)/main.c \
+	$(SRC_DIR)/window.c \
+	$(SRC_DIR)/hooks.c
+
+OBJ := $(SRC:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
 
 all: $(NAME)
 
-$(NAME): $(OBJS)
-	$(CC) $(CFLAGS) $(OBJS) -o $(NAME) $(LIBS)
+$(NAME): $(OBJ)
+	$(CC) $(OBJ) $(LDFLAGS) -o $(NAME)
 
-objs/%.o: %.c $(HEADERS)
-	@mkdir -p objs
-	$(CC) $(CFLAGS) -c $< -o $@ -DLINE_EQ
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | $(OBJ_DIR)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(OBJ_DIR):
+	mkdir -p $(OBJ_DIR)
 
 clean:
-	rm -rf objs
+	rm -rf $(OBJ_DIR)
 
 fclean: clean
 	rm -f $(NAME)
 
 re: fclean all
 
-.PHONY: all clean fclean re
+run: all
+	./$(NAME)
+
+.PHONY: all clean fclean re run
