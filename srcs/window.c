@@ -19,6 +19,9 @@ int	init_app(t_app *app, int w, int h, char *title)
 	app->img = mlx_new_image(app->mlx, app->w, app->h);
 	if (!app->img)
 		return (destroy_app(app), 0);
+	app->addr = mlx_get_data_addr(app->img, &app->bpp, &app->ll, &app->endian);
+	if (!app->addr)
+		return (destroy_app(app), 0);
 	setup_hooks(app);
 	return (1);
 }
