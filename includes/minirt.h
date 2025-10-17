@@ -4,7 +4,7 @@
 # include "mlx.h"
 # include "libft.h"
 # include <stdlib.h>
-# include <string.h>
+
 
 # define KEY_ESC 65307
 # define WIN_W 2000
@@ -31,5 +31,10 @@ int	on_close(t_app *app);
 //func for drawing
 void	fill_black(t_app *app);
 void    put_frame(t_app *app);
+unsigned int	rgb(int r, int g, int b);
+void	put_pixel(t_app *app, int x, int y, unsigned int color);
+void	clear_img(t_app *app);
+void	render_test(t_app *app);
+int		loop_frame(void *param);
 
 #endif

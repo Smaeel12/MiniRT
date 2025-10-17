@@ -8,6 +8,7 @@ int	main(void)
 		return (1);
     fill_black(&app);
     put_frame(&app);
+	mlx_loop_hook(app.mlx, loop_frame, &app);
 	mlx_loop(app.mlx);
 	return (0);
 }

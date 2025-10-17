@@ -48,13 +48,8 @@ int	destroy_app(t_app *app)
 }
 void	fill_black(t_app *app)
 {
-	int bytes;
-	int total;
-
-	bytes = app->bpp / 8;
-	total = app->ll * app->h;
-	(void)bytes;
-	memset(app->addr, 0, total);
+	int	total = app->ll * app->h;
+	ft_memset(app->addr, 0, (size_t)total);
 }
 
 void	put_frame(t_app *app)
