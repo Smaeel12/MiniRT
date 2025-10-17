@@ -13,7 +13,8 @@ SRC := \
 	$(SRC_DIR)/main.c \
 	$(SRC_DIR)/window.c \
 	$(SRC_DIR)/hooks.c \
-	$(SRC_DIR)/render.c
+	$(SRC_DIR)/render.c \
+	$(SRC_DIR)/parse_utils.c
 
 OBJ := $(SRC:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
 
