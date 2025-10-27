@@ -1,8 +1,8 @@
 CC = cc
-CFLAGS = -Wall -Wextra -Werror -g -O3
+CFLAGS = -Wall -Wextra -Werror -g -O3 -Wno-unused-variable -Wno-unused-parameter
 NAME = MiniRT
 
-SRCS = $(wildcard *.c)
+SRCS = main.c vectors.c
 OBJS = $(SRCS:%.c=objs/%.o)
 HEADER = $(wildcard includes/*.h)
 
