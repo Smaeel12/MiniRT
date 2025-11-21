@@ -6,7 +6,7 @@
 /*   By: iboubkri <iboubkri@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/08 22:29:43 by iboubkri          #+#    #+#             */
-/*   Updated: 2025/10/24 16:24:25 by iboubkri         ###   ########.fr       */
+/*   Updated: 2025/11/12 23:03:38 by iboubkri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,7 @@ typedef t_vec3 t_color3;
 
 typedef struct {
 	double t;
+	t_vec3 p;
 	t_vec3 n;
 } t_hit;
 
@@ -54,9 +55,18 @@ typedef struct {
 } t_triangle;
 
 typedef struct {
-	t_surface *surface;
+	t_surface *surfaces;
 
-	t_vec3 camera;
+	struct {
+		t_vec3 pos;
+
+		t_vec3 fd;
+		t_vec3 rt;
+		t_vec3 up;
+
+		double fl;
+	} camera;
+
 } t_scene;
 
 typedef struct {
@@ -72,18 +82,24 @@ typedef struct {
 
 #define COLOR3 color3
 #define VEC3 vec3
+
+#define VCROSS vcross
 #define VDOT vdot
 #define VMUL vmul
 #define VSUB vsub
 #define VADD vadd
+
 #define VNORM vnorm
 
 t_color3 color3(double r, double g, double b);
 t_vec3 vec3(double a, double b, double c);
+
+t_vec3 vcross(t_vec3 a, t_vec3 b);
 t_vec3 vmul(double num, t_vec3 vec);
 double vdot(t_vec3 a, t_vec3 b);
 t_vec3 vsub(t_vec3 a, t_vec3 b);
 t_vec3 vadd(t_vec3 a, t_vec3 b);
+
 t_vec3 vnorm(t_vec3 vec);
 
 #endif

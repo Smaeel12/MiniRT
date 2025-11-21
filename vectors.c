@@ -6,7 +6,7 @@
 /*   By: iboubkri <iboubkri@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/08 22:30:55 by iboubkri          #+#    #+#             */
-/*   Updated: 2025/10/24 16:24:27 by iboubkri         ###   ########.fr       */
+/*   Updated: 2025/11/10 02:12:10 by iboubkri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,4 +46,13 @@ t_vec3 vnorm(t_vec3 vec)
 {
 	double len = sqrt(vec.x * vec.x + vec.y * vec.y + vec.z * vec.z);
 	return ((t_vec3){{vec.x / len, vec.y / len, vec.z / len}});
+}
+
+t_vec3 vcross(t_vec3 a, t_vec3 b)
+{
+	return ((t_vec3){{
+		a.y * b.z - a.z * b.y,
+		a.z * b.x - a.x * b.z,
+		a.x * b.y - a.y * b.x,
+	}});
 }

@@ -1,0 +1,23 @@
+{
+	"files.associations": {
+		"time.h": "c",
+		"math.h": "c",
+		"mlx_int.h": "c",
+		"main.h": "c",
+		"mlx.h": "c",
+		"cstddef": "c",
+		"cmath": "c",
+		"type_traits": "c",
+		"random": "c",
+		"stdexcept": "c",
+		"functional": "c",
+		"libft.h": "c",
+		"limits.h": "c",
+		"ratio": "c",
+		"system_error": "c",
+		"array": "c",
+		"tuple": "c",
+		"utility": "c"
+	},
+	"C_Cpp.errorSquiggles": "enabled"
+}
