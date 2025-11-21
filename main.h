@@ -1,105 +1,103 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   main.h                                             :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: iboubkri <iboubkri@student.1337.ma>        +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/10/08 22:29:43 by iboubkri          #+#    #+#             */
-/*   Updated: 2025/11/12 23:03:38 by iboubkri         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
+#pragma once
 
-#ifndef MAIN_H
-#define MAIN_H
-
+#include <limits.h>
 #include <math.h>
+#include <unistd.h>
+
+#include "Libft/libft.h"
+#include "mlx/mlx.h"
+#include "mlx/mlx_int.h"
 
 typedef union {
 	struct {
-		double x, y, z;
+		float x, y, z;
 	};
 	struct {
-		double r, g, b;
+		float r, g, b;
 	};
 } t_vec3;
 
 typedef t_vec3 t_color3;
 
+union s_surface;
+
 typedef struct {
-	double t;
-	t_vec3 p;
 	t_vec3 n;
+	double t;
 } t_hit;
 
-typedef struct s_surface {
-	t_hit (*hit_func)(struct s_surface *, t_vec3, t_vec3);
-	struct s_surface *next;
-} t_surface;
-
 typedef struct {
-	t_hit (*hit_func)(t_surface *, t_vec3, t_vec3);
-	t_surface *next;
-
-	t_color3 color;
+	t_hit (*hit_function)(union s_surface *, t_vec3, t_vec3);
+	float diameter;
+	t_vec3 color;
 	t_vec3 pos;
-	double radius;
-} t_sphere;
+} t_sphere;	 // SPHERE
 
 typedef struct {
-	t_hit (*hit_func)(t_surface *, t_vec3, t_vec3);
-	t_surface *next;
-
-	t_color3 color;
-	t_vec3 point[3];
-} t_triangle;
+	t_hit (*hit_function)(union s_surface *, t_vec3, t_vec3);
+	t_vec3 normal;
+	t_vec3 color;
+	t_vec3 pos;
+} t_plane;	// PLANE
 
 typedef struct {
-	t_surface *surfaces;
+	t_hit (*hit_function)(union s_surface *, t_vec3, t_vec3);
+	float diameter;
+	float height;
+	t_vec3 normal;
+	t_vec3 color;
+	t_vec3 pos;
+} t_cylinder;  // CYLINDER
 
+typedef union s_surface {
+	t_hit (*hit_function)(union s_surface *, t_vec3, t_vec3);
+	t_cylinder cylinder;
+	t_sphere sphere;
+	t_plane plane;
+} t_surface;  // SURFACES
+
+struct s_app {
 	struct {
-		t_vec3 pos;
+		int w, h;
+		t_xvar *mlx;
+		t_win_list *win;
+		t_img *framebuffer;
+	} window;
 
-		t_vec3 fd;
-		t_vec3 rt;
-		t_vec3 up;
+	struct s_scene {
+		struct s_camera {
+			t_vec3 pos;
+			t_vec3 fd, up, rt;
+			int fov;
+		} camera;  // CAMERA
+		t_surface *surfaces;
+	} scene;
+};
 
-		double fl;
-	} camera;
+t_hit sphere_intersection(t_sphere *sphere, t_vec3 org, t_vec3 dir);
+#define SPHERE sphere
+static inline t_sphere sphere(t_vec3 pos, float dim, t_vec3 clr)
+{
+	return (t_sphere){
+		(t_hit (*)(union s_surface *, t_vec3, t_vec3))sphere_intersection, pos,
+		dim, clr};
+}
 
-} t_scene;
+#define CAMERA camera
+static inline struct s_camera camera(t_vec3 pos, t_vec3 fd, t_vec3 up,
+									 t_vec3 rt, int fov)
+{
+	return (struct s_camera){pos, up, rt, fd, fov};
+}
 
-typedef struct {
-	void *buffer;
-	void *ptr;
-	void *win;
-
-	int w;
-	int h;
-
-	t_scene scene;
-} t_mlx;
+#define VEC3 vec3
+static inline t_vec3 vec3(float x, float y, float z)
+{
+	return (t_vec3){{x, y, z}};
+}
 
 #define COLOR3 color3
-#define VEC3 vec3
-
-#define VCROSS vcross
-#define VDOT vdot
-#define VMUL vmul
-#define VSUB vsub
-#define VADD vadd
-
-#define VNORM vnorm
-
-t_color3 color3(double r, double g, double b);
-t_vec3 vec3(double a, double b, double c);
-
-t_vec3 vcross(t_vec3 a, t_vec3 b);
-t_vec3 vmul(double num, t_vec3 vec);
-double vdot(t_vec3 a, t_vec3 b);
-t_vec3 vsub(t_vec3 a, t_vec3 b);
-t_vec3 vadd(t_vec3 a, t_vec3 b);
-
-t_vec3 vnorm(t_vec3 vec);
-
-#endif
+static inline t_color3 color3(float r, float g, float b)
+{
+	return (t_color3){{r, g, b}};
+}

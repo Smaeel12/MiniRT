@@ -2,7 +2,7 @@ CC = cc
 CFLAGS = -Wall -Wextra -Werror -g -O3 -Wno-unused-variable -Wno-unused-parameter
 NAME = MiniRT
 
-SRCS = main.c vectors.c
+SRCS = main.c
 OBJS = $(SRCS:%.c=objs/%.o)
 HEADER = $(wildcard includes/*.h)
 
