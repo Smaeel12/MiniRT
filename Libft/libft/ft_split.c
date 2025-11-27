@@ -12,11 +12,11 @@
 
 #include "../libft.h"
 
-static size_t count_words(char const *s, char c)
+static size_t	count_words(char const *s, char c)
 {
-	size_t count;
-	size_t slen;
-	size_t i;
+	size_t	count;
+	size_t	slen;
+	size_t	i;
 
 	count = 0;
 	i = 0;
@@ -30,9 +30,9 @@ static size_t count_words(char const *s, char c)
 	return (count);
 }
 
-static void free_all(char **arr)
+static void	free_all(char **arr)
 {
-	size_t i;
+	size_t	i;
 
 	i = 0;
 	while (arr[i])
@@ -44,11 +44,11 @@ static void free_all(char **arr)
 	free(arr);
 }
 
-static void fill_array(char **arr, char const *s, char c)
+static void	fill_array(char **arr, char const *s, char c)
 {
-	size_t i;
-	size_t j;
-	size_t k;
+	size_t	i;
+	size_t	j;
+	size_t	k;
 
 	i = 0;
 	k = 0;
@@ -63,7 +63,7 @@ static void fill_array(char **arr, char const *s, char c)
 			if (!arr[k])
 			{
 				free_all(arr);
-				return;
+				return ;
 			}
 			i = i + j - 1;
 			k++;
@@ -73,10 +73,10 @@ static void fill_array(char **arr, char const *s, char c)
 	arr[k] = NULL;
 }
 
-char **ft_split(char const *s, char c)
+char	**ft_split(char const *s, char c)
 {
-	char **arr;
-	size_t num;
+	char	**arr;
+	size_t	num;
 
 	if (!s)
 		return (NULL);

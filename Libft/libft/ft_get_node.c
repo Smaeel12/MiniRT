@@ -12,9 +12,9 @@
 
 #include "../libft.h"
 
-t_list *ft_get_node(t_list *lst, int idx)
+t_list	*ft_get_node(t_list *lst, int idx)
 {
-	int i;
+	int	i;
 
 	i = 0;
 	while (lst && i < idx)
@@ -22,5 +22,5 @@ t_list *ft_get_node(t_list *lst, int idx)
 		lst = lst->next;
 		i++;
 	}
-	return lst;
+	return (lst);
 }

@@ -12,9 +12,9 @@
 
 #include "../libft.h"
 
-t_list *ft_lstcopy(t_list *lst)
+t_list	*ft_lstcopy(t_list *lst)
 {
-	t_list *new;
+	t_list	*new;
 
 	new = NULL;
 	while (lst)
@@ -22,5 +22,5 @@ t_list *ft_lstcopy(t_list *lst)
 		ft_lstadd_back(&new, ft_lstnew(ft_strdup(lst->content)));
 		lst = lst->next;
 	}
-	return new;
+	return (new);
 }

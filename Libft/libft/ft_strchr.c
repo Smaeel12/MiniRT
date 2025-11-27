@@ -12,10 +12,10 @@
 
 #include "../libft.h"
 
-char *ft_strchr(const char *s, int c)
+char	*ft_strchr(const char *s, int c)
 {
-	size_t i;
-	size_t slen;
+	size_t	i;
+	size_t	slen;
 
 	i = 0;
 	slen = ft_strlen(s);

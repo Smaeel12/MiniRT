@@ -6,7 +6,7 @@
 /*   By: iboubkri <iboubkri@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/17 01:34:30 by iboubkri          #+#    #+#             */
-/*   Updated: 2025/11/20 12:50:00 by iboubkri         ###   ########.fr       */
+/*   Updated: 2025/11/27 17:09:00 by iboubkri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,99 +25,45 @@ t_vec3 vnorm(t_vec3 vec)
 	len = sqrt(vec.x * vec.x + vec.y * vec.y + vec.z * vec.z);
 	return ((t_vec3){{vec.x / len, vec.y / len, vec.z / len}});
 }
+t_hit plane_intersection(t_plane *plane, t_vec3 org, t_vec3 dir)
+{
+	printf("POS: %f %f %f\n", plane->pos.x, plane->pos.y, plane->pos.z);
+	printf("NORMAL: %f %f %f\n", plane->normal.x, plane->normal.y,
+		   plane->normal.z);
+	printf("COLOR : %f %f %f\n", plane->color.x, plane->color.y,
+		   plane->color.z);
+	return ((t_hit){VEC3(0, 0, 0), 1});
+}
+t_hit cylinder_intersection(t_cylinder *cylinder, t_vec3 org, t_vec3 dir)
+{
+	printf("POS: %f %f %f\n", cylinder->pos.x, cylinder->pos.y,
+		   cylinder->pos.z);
+	printf("NORMAL: %f %f %f\n", cylinder->normal.x, cylinder->normal.y,
+		   cylinder->normal.z);
+	printf("COLOR : %f %f %f\n", cylinder->color.x, cylinder->color.y,
+		   cylinder->color.z);
+	printf("DIAMETER: %f HEIGHT: %f\n", cylinder->diameter, cylinder->height);
+	return ((t_hit){VEC3(0, 0, 0), 1});
+}
 t_hit sphere_intersection(t_sphere *sphere, t_vec3 org, t_vec3 dir)
 {
-	t_vec3 oc;
-	double a;
-	double b;
-	double disc;
-	double t;
-
-	oc	 = VSUB(sphere->pos, org);
-	a	 = VDOT(dir, dir);
-	b	 = -2.0 * VDOT(dir, oc);
-	disc = b * b - 4 * a * (VDOT(oc, oc) - sphere->diameter * sphere->diameter);
-	if (disc < 0.0)
-		return ((t_hit){VEC3(-1, -1, -1), INFINITY});
-	t = (-b - sqrt(disc)) / (2.0 * a);
-	return ((t_hit){VNORM(VSUB(VADD(org, VMUL(t, dir)), sphere->pos)), t});
-}
-
-#define MAX_SURFACES 10
-
-t_vec3 str_to_vec(char *line)
-{
-}
-
-static int camera_parse(struct s_camera *camera, char *pos, char *fd, char *fov)
-{
-	t_vec3 up = VEC3(0, 1, 0);
-	if (!pos || !fd || !fov)
-		return -1;
-
-	camera->pos = (t_vec3){atof(strtok(pos, ",")), atof(strtok(pos, ",")),
-						   atof(strtok(pos, ","))};
-	camera->fd	= (t_vec3){atof(strtok(fd, ",")), atof(strtok(fd, ",")),
-						   atof(strtok(fd, ","))};
-	camera->fov = atoi(strtok(fov, ""));
-
-	if (!(camera->fov.x == 0 && camera->fov.y == 0 && camera->fov.z == 0))
-		up = VEC3(0, 0, 1);
-	camera->rt = VCROSS(camera->up, camera.fd);
-	camera->up = VCROSS(camera->rt, camera.fd);
-
-	return 0;
-}
-
-int init_scene(struct s_app *rt)
-{
-	int fd;
-	int idx;
-	char *line;
-	char *id;
-
-	fd				   = open("objs.rt", O_RDONLY);
-	rt->scene.surfaces = malloc(MAX_SURFACES * sizeof(t_surface));
-	memset(rt->scene.surfaces, 0, MAX_SURFACES * sizeof(t_surface));
-	while ((line = get_next_line(fd))) {
-		id = strtok(line, " \t\v\r");
-		if (strncmp(id, "C", 2)) {
-			camera_parse(rt->scene, strtok(line, " \t\v\r"),
-						 strtok(line, " \t\v\r"), strtok(line, " \t\v\r"));
-		}
-		if (strncmp(id, "pl", 3)) {
-			rt->scene.surfaces[idx++] = (t_surface)plane_parse(
-				rt->scene, strtok(line, " \t\v\r"), strtok(line, " \t\v\r"),
-				strtok(line, " \t\v\r"));
-		}
-		if (strncmp(id, "sp", 3)) {
-			rt->scene.surfaces[idx++] = (t_surface)sphere_parse(
-				rt->scene, strtok(line, " \t\v\r"), strtok(line, " \t\v\r"),
-				strtok(line, " \t\v\r"));
-		}
-		if (strncmp(id, "cy", 3)) {
-			rt->scene.surfaces[idx++] = (t_surface)cylinder_parse(
-				rt->scene, strtok(line, " \t\v\r"), strtok(line, " \t\v\r"),
-				strtok(line, " \t\v\r"), strtok(line, " \t\v\r"),
-				strtok(line, " \t\v\r"));
-		}
-	}
-	return (0);
-}
-
-int init_scene(struct s_app *rt)
-{
-	char *line;
-	char *id;
-
-	int fd = open("objs.rt", O_RDONLY);
-	while (true) {
-		line = get_next_line(fd);
-		if (!line)
-			break;
-		id = strtok(line, " ,");
-	}
-	return 0;
+	// t_vec3 oc;
+	// double a;
+	// double b;
+	// double disc;
+	// double t;
+	// oc		= VSUB(sphere->pos, org);
+	// a		= VDOT(dir, dir);
+	// b		= -2.0 * VDOT(dir, oc);
+	// disc = b * b - 4 * a * (VDOT(oc, oc) - sphere->diameter *
+	// sphere->diameter); if (disc < 0.0) 	return ((t_hit){VEC3(-1, -1, -1),
+	// INFINITY}); t = (-b - sqrt(disc)) / (2.0 * a); return (//
+	// ((t_hit){VNORM(VSUB(VADD(org, VMUL(t, dir)), sphere->pos)), t}));
+	printf("POS: %f %f %f\n", sphere->pos.x, sphere->pos.y, sphere->pos.z);
+	printf("COLOR : %f %f %f\n", sphere->color.x, sphere->color.y,
+		   sphere->color.z);
+	printf("DIAMETER: %f\n", sphere->diameter);
+	return ((t_hit){VEC3(0, 0, 0), 1});
 }
 
 int mlx_put_pixel_on_image(t_img *img, t_color3 color, int x, int y)
@@ -172,20 +118,43 @@ int main(void)
 {
 	struct s_app rt;
 
+	memset(&rt, 0, sizeof(rt));
+
 	rt.window.h = 800;
 	rt.window.w = 800;
 
-	rt.window.mlx = mlx_init();
-	rt.window.win =
-		mlx_new_window(rt.window.mlx, rt.window.w, rt.window.h, "3D");
+	// rt.window.mlx = mlx_init();
+	// rt.window.win =
+	// 	mlx_new_window(rt.window.mlx, rt.window.w, rt.window.h, "3D");
 
-	rt.window.framebuffer =
-		mlx_new_image(rt.window.mlx, rt.window.w, rt.window.h);
+	// rt.window.framebuffer =
+	// 	mlx_new_image(rt.window.mlx, rt.window.w, rt.window.h);
 
-	init_scene(&rt);
-	printf("%f\n", rt.scene.surfaces->sphere.diameter);
-	on_update(&rt);
+	int fd;
+	fd = open("objs.rt", O_RDONLY);
+	if (fd < 0)
+		return (dprintf(2, "CAN'T READ FILE"), -1);
+	rt.scene.surfaces = malloc(MAX_SURFACES * sizeof(t_surface));
+	memset(rt.scene.surfaces, 0, MAX_SURFACES * sizeof(t_surface));
 
-	mlx_hook(rt.window.win, DestroyNotify, StructureNotifyMask, on_close, &rt);
-	mlx_loop(rt.window.mlx);
+	init_scene(&rt, fd);
+	printf("POS: %f %f %f\n", rt.scene.camera.pos.x, rt.scene.camera.pos.y,
+		   rt.scene.camera.pos.z);
+	printf("FD : %f %f %f\n", rt.scene.camera.fd.x, rt.scene.camera.fd.y,
+		   rt.scene.camera.fd.z);
+	printf("FOV: %d\n", rt.scene.camera.fov);
+
+	for (int i = 0; i < MAX_SURFACES; i++) {
+		printf("=======\n");
+		if (!rt.scene.surfaces[i].hit_function)
+			break;
+		rt.scene.surfaces[i].hit_function(&rt.scene.surfaces[i], VEC3(0, 0, 0),
+										  VEC3(0, 0, 0));
+	}
+	free(rt.scene.surfaces);
+
+	// on_update(&rt);
+
+	// mlx_hook(rt.window.win, DestroyNotify, StructureNotifyMask, on_close,
+	// &rt); mlx_loop(rt.window.mlx);
 }

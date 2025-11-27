@@ -12,26 +12,26 @@
 
 #include "../libft.h"
 
-static void putnbr_to_buffer(unsigned int n, int fd)
+static void	putnbr_to_buffer(unsigned int n, int fd)
 {
-	char c;
+	char	c;
 
 	if (!n)
-		return;
+		return ;
 	c = (n % 10) + '0';
 	putnbr_to_buffer(n / 10, fd);
 	write(fd, &c, 1);
-	return;
+	return ;
 }
 
-void ft_putnbr_fd(int n, int fd)
+void	ft_putnbr_fd(int n, int fd)
 {
-	unsigned int num;
+	unsigned int	num;
 
 	if (!n)
 	{
 		write(fd, "0", 1);
-		return;
+		return ;
 	}
 	else if (n < 0)
 	{

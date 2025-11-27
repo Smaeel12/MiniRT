@@ -12,13 +12,13 @@
 
 #include "../libft.h"
 
-char *ft_strcat(char *dest, const char *src)
+char	*ft_strcat(char *dest, const char *src)
 {
-	char *new;
-	int i;
-	int j;
-	int dlen;
-	int slen;
+	char	*new;
+	int		i;
+	int		j;
+	int		dlen;
+	int		slen;
 
 	i = 0;
 	j = 0;

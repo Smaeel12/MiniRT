@@ -12,11 +12,11 @@
 
 #include "../libft.h"
 
-long ft_atol(const char *str)
+long	ft_atol(const char *str)
 {
-	int sign;
-	size_t i;
-	size_t res;
+	int		sign;
+	size_t	i;
+	size_t	res;
 
 	i = 0;
 	res = 0;

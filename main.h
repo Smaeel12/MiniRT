@@ -28,25 +28,25 @@ typedef struct {
 
 typedef struct {
 	t_hit (*hit_function)(union s_surface *, t_vec3, t_vec3);
+	t_vec3 pos;
 	float diameter;
 	t_vec3 color;
-	t_vec3 pos;
 } t_sphere;	 // SPHERE
 
 typedef struct {
 	t_hit (*hit_function)(union s_surface *, t_vec3, t_vec3);
+	t_vec3 pos;
 	t_vec3 normal;
 	t_vec3 color;
-	t_vec3 pos;
 } t_plane;	// PLANE
 
 typedef struct {
 	t_hit (*hit_function)(union s_surface *, t_vec3, t_vec3);
+	t_vec3 pos;
+	t_vec3 normal;
 	float diameter;
 	float height;
-	t_vec3 normal;
 	t_vec3 color;
-	t_vec3 pos;
 } t_cylinder;  // CYLINDER
 
 typedef union s_surface {
@@ -67,28 +67,21 @@ struct s_app {
 	struct s_scene {
 		struct s_camera {
 			t_vec3 pos;
-			t_vec3 fd, up, rt;
+			t_vec3 fd;
 			int fov;
 		} camera;  // CAMERA
 		t_surface *surfaces;
 	} scene;
 };
 
-t_hit sphere_intersection(t_sphere *sphere, t_vec3 org, t_vec3 dir);
-#define SPHERE sphere
-static inline t_sphere sphere(t_vec3 pos, float dim, t_vec3 clr)
-{
-	return (t_sphere){
-		(t_hit (*)(union s_surface *, t_vec3, t_vec3))sphere_intersection, pos,
-		dim, clr};
-}
+#define INF INFINITY
 
-#define CAMERA camera
-static inline struct s_camera camera(t_vec3 pos, t_vec3 fd, t_vec3 up,
-									 t_vec3 rt, int fov)
-{
-	return (struct s_camera){pos, up, rt, fd, fov};
-}
+t_hit sphere_intersection(t_sphere *sphere, t_vec3 org, t_vec3 dir);
+t_hit plane_intersection(t_plane *plane, t_vec3 org, t_vec3 dir);
+t_hit cylinder_intersection(t_cylinder *cylinder, t_vec3 org, t_vec3 dir);
+int init_scene(struct s_app *rt, int file);
+
+#define MAX_SURFACES 10
 
 #define VEC3 vec3
 static inline t_vec3 vec3(float x, float y, float z)

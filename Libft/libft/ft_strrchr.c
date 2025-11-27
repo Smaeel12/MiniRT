@@ -12,11 +12,11 @@
 
 #include "../libft.h"
 
-char *ft_strrchr(const char *s, int c)
+char	*ft_strrchr(const char *s, int c)
 {
-	size_t i;
-	size_t slen;
-	char *addr;
+	size_t	i;
+	size_t	slen;
+	char	*addr;
 
 	i = 0;
 	addr = NULL;
