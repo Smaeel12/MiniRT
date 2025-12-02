@@ -1,31 +1,33 @@
-CC = cc
-CFLAGS = -Wall -Wextra -Werror -g -O0 -Wno-unused-variable -Wno-unused-parameter
-NAME = MiniRT
+CC := cc
+NAME := MiniRT
+LIBS := -lm -LLibft -lft
+CFLAGS := -W -Werror -Wextra
 
-SRCS = $(wildcard *.c)
-OBJS = $(SRCS:%.c=objs/%.o)
-HEADER = $(wildcard includes/*.h)
+SRCS := $(wildcard *.c)
+OBJS := $(SRCS:%.c=objs/%.o)
+DEPS := $(OBJS:.o=.d)
 
-LIBS = -lm -L./mlx -lmlx -lX11 -lXext -L./Libft -lft
+CFLAGS += -g3 -fsanitize=address -Wno-unused-parameter
+CFLAGS += -MMD -MP
 
 all: $(NAME)
 
 $(NAME): $(OBJS)
-	make -C Libft
-	$(CC) $(CFLAGS) $(OBJS) -o $(NAME) $(LIBS)
+	$(MAKE) -C Libft
+	$(CC) $(CFLAGS) $(OBJS) -o $@ $(LIBS)
 
-objs/%.o: %.c $(HEADERS)
-	@mkdir -p objs
-	$(CC) $(CFLAGS) -c $< -o $@ -DLINE_EQ
+objs/%.o: %.c
+	@mkdir -p $(@D)
+	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	make clean -C Libft
-	rm -rf objs
+	rm -rf objs/
 
 fclean: clean
-	make fclean -C Libft
-	rm -f $(NAME)
+	rm -rf $(NAME)
 
 re: fclean all
 
-.PHONY: all clean fclean re
+-include $(DEPS)
+
+.PHONY: all fclean clean re

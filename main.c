@@ -1,160 +1,106 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   main.c                                             :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: iboubkri <iboubkri@student.1337.ma>        +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/11/17 01:34:30 by iboubkri          #+#    #+#             */
-/*   Updated: 2025/11/27 17:09:00 by iboubkri         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "main.h"
+#include "parser_utils.h"
 
-#define VADD(a, b) ((t_vec3){{a.x + b.x, a.y + b.y, a.z + b.z}})
-#define VSUB(a, b) ((t_vec3){{a.x - b.x, a.y - b.y, a.z - b.z}})
-#define VDOT(a, b) (a.x * b.x + a.y * b.y + a.z * b.z)
-#define VMUL(n, vec) ((t_vec3){{n * vec.x, n * vec.y, n * vec.z}})
+#define VMUL(n, vec)                                                           \
+    (t_vec3)                                                                   \
+    {                                                                          \
+        n *vec.x, n *vec.y, n *vec.z                                           \
+    }
+#define VADD(a, b)                                                             \
+    (t_vec3)                                                                   \
+    {                                                                          \
+        a.x + b.x, a.y + b.y, a.z + b.z                                        \
+    }
 
-#define VNORM vnorm
-t_vec3 vnorm(t_vec3 vec)
+void on_close(char *message)
 {
-	double len;
-
-	len = sqrt(vec.x * vec.x + vec.y * vec.y + vec.z * vec.z);
-	return ((t_vec3){{vec.x / len, vec.y / len, vec.z / len}});
-}
-t_hit plane_intersection(t_plane *plane, t_vec3 org, t_vec3 dir)
-{
-	printf("POS: %f %f %f\n", plane->pos.x, plane->pos.y, plane->pos.z);
-	printf("NORMAL: %f %f %f\n", plane->normal.x, plane->normal.y,
-		   plane->normal.z);
-	printf("COLOR : %f %f %f\n", plane->color.x, plane->color.y,
-		   plane->color.z);
-	return ((t_hit){VEC3(0, 0, 0), 1});
-}
-t_hit cylinder_intersection(t_cylinder *cylinder, t_vec3 org, t_vec3 dir)
-{
-	printf("POS: %f %f %f\n", cylinder->pos.x, cylinder->pos.y,
-		   cylinder->pos.z);
-	printf("NORMAL: %f %f %f\n", cylinder->normal.x, cylinder->normal.y,
-		   cylinder->normal.z);
-	printf("COLOR : %f %f %f\n", cylinder->color.x, cylinder->color.y,
-		   cylinder->color.z);
-	printf("DIAMETER: %f HEIGHT: %f\n", cylinder->diameter, cylinder->height);
-	return ((t_hit){VEC3(0, 0, 0), 1});
-}
-t_hit sphere_intersection(t_sphere *sphere, t_vec3 org, t_vec3 dir)
-{
-	// t_vec3 oc;
-	// double a;
-	// double b;
-	// double disc;
-	// double t;
-	// oc		= VSUB(sphere->pos, org);
-	// a		= VDOT(dir, dir);
-	// b		= -2.0 * VDOT(dir, oc);
-	// disc = b * b - 4 * a * (VDOT(oc, oc) - sphere->diameter *
-	// sphere->diameter); if (disc < 0.0) 	return ((t_hit){VEC3(-1, -1, -1),
-	// INFINITY}); t = (-b - sqrt(disc)) / (2.0 * a); return (//
-	// ((t_hit){VNORM(VSUB(VADD(org, VMUL(t, dir)), sphere->pos)), t}));
-	printf("POS: %f %f %f\n", sphere->pos.x, sphere->pos.y, sphere->pos.z);
-	printf("COLOR : %f %f %f\n", sphere->color.x, sphere->color.y,
-		   sphere->color.z);
-	printf("DIAMETER: %f\n", sphere->diameter);
-	return ((t_hit){VEC3(0, 0, 0), 1});
+    write(2, message, ft_strlen(message));
+    exit(-1);
 }
 
-int mlx_put_pixel_on_image(t_img *img, t_color3 color, int x, int y)
+void write_color(t_color3 color)
 {
-	char *dst;
-
-	dst = img->data + (y * img->size_line + x * (img->abpp / 8));
-	*(unsigned int *)dst = (int)(color.r * 255.999) << 16 |
-						   (int)(color.g * 255.999) << 8 |
-						   (int)(color.b * 255.999);
-	return (0);
+    printf("%d %d %d\n", (int)color.x, (int)color.y, (int)color.z);
 }
 
-int on_update(struct s_app *rt)
+int on_render(struct s_raytracing *rt)
 {
-	t_hit hit;
-	t_vec3 dir;
-	int x;
-	int y;
+    t_hit prev_hit;
+    t_vec3 dir;
+    t_hit hit;
+    int idx;
+    int x;
+    int y;
 
-	y = 0;
-	while (y < rt->window.h) {
-		x = 0;
-		while (x < rt->window.w) {
-			dir = VEC3(2 * ((x + 0.5) / (float)rt->window.w) - 1,
-					   1 - 2 * ((y + 0.5) / (float)rt->window.h), -1);
-			hit = rt->scene.surfaces->hit_function(rt->scene.surfaces,
-												   rt->scene.camera.pos, dir);
-			if (!isinf(hit.t)) {
-				mlx_put_pixel_on_image(rt->window.framebuffer,
-									   VMUL(0.5, VADD(VEC3(1, 1, 1), hit.n)), x,
-									   y);
-			}
-			x++;
-		}
-		y++;
-	}
-	mlx_put_image_to_window(rt->window.mlx, rt->window.win,
-							rt->window.framebuffer, 0, 0);
-	return (0);
+    y = 0;
+    hit = (t_hit){INF, (t_vec3){0, 0, 0}};
+    prev_hit = (t_hit){INF, (t_vec3){0, 0, 0}};
+    while (y < rt->window.h)
+    {
+        x = 0;
+        while (x < rt->window.w)
+        {
+            idx = 0;
+            dir = (t_vec3){2.0 * x / (float)rt->window.w - 1.0,
+                           1.0 - 2.0 * y / (float)rt->window.h, -1};
+            while (idx < MAX_SURFACES && rt->scene.surfaces[idx].hit_function)
+            {
+                hit = rt->scene.surfaces[idx].hit_function(
+                    &rt->scene.surfaces[idx], rt->scene.camera.pos, dir);
+                if (hit.t < prev_hit.t)
+                    hit = prev_hit;
+                idx++;
+            }
+            if (hit.t != INF)
+                write_color((t_color3){255, 255, 255});
+            else
+            {
+                float a = 0.5 * (dir.y + 1.0);
+                write_color(
+                    VMUL(255, VADD(VMUL((1 - a), ((t_color3){1.0, 1.0, 1.0})),
+                                   VMUL(a, ((t_color3){0.5, 0.7, 1.0})))));
+            }
+            x++;
+        }
+        y++;
+    }
+    return (0);
 }
 
-int on_close(struct s_app *rt)
+int main(int ac, char **av)
 {
-	mlx_destroy_image(rt->window.mlx, rt->window.framebuffer);
-	mlx_destroy_window(rt->window.mlx, rt->window.win);
-	mlx_destroy_display(rt->window.mlx);
-	return (exit(0), 0);
-}
+    struct s_raytracing rt;
+    int fd;
 
-int main(void)
-{
-	struct s_app rt;
+    if (ac < 2)
+        on_close(ERR_NO_FILE);
+    fd = open(av[1], O_RDONLY);
+    if (fd < 0)
+        on_close(ERR_FAILED_OPEN);
+    ft_memset(&rt, 0, sizeof(struct s_raytracing));
+    rt.window.h = 256;
+    rt.window.w = 256;
+    ft_memset(rt.scene.surfaces, 0, MAX_SURFACES * sizeof(t_surface));
+    // printf("P3\n%i %i\n255\n", rt.window.h, rt.window.w);
+    parse_objects(fd, parser_rules(&rt.scene));
 
-	memset(&rt, 0, sizeof(rt));
+    // printf("CAMERA: %f %f %f\t%f %f %f\t%f\n", rt.scene.camera.pos.x,
+    //        rt.scene.camera.pos.y, rt.scene.camera.pos.z,
+    //        rt.scene.camera.fd.x, rt.scene.camera.fd.y, rt.scene.camera.fd.z,
+    //        rt.scene.camera.fov);
 
-	rt.window.h = 800;
-	rt.window.w = 800;
-
-	// rt.window.mlx = mlx_init();
-	// rt.window.win =
-	// 	mlx_new_window(rt.window.mlx, rt.window.w, rt.window.h, "3D");
-
-	// rt.window.framebuffer =
-	// 	mlx_new_image(rt.window.mlx, rt.window.w, rt.window.h);
-
-	int fd;
-	fd = open("objs.rt", O_RDONLY);
-	if (fd < 0)
-		return (dprintf(2, "CAN'T READ FILE"), -1);
-	rt.scene.surfaces = malloc(MAX_SURFACES * sizeof(t_surface));
-	memset(rt.scene.surfaces, 0, MAX_SURFACES * sizeof(t_surface));
-
-	init_scene(&rt, fd);
-	printf("POS: %f %f %f\n", rt.scene.camera.pos.x, rt.scene.camera.pos.y,
-		   rt.scene.camera.pos.z);
-	printf("FD : %f %f %f\n", rt.scene.camera.fd.x, rt.scene.camera.fd.y,
-		   rt.scene.camera.fd.z);
-	printf("FOV: %d\n", rt.scene.camera.fov);
-
-	for (int i = 0; i < MAX_SURFACES; i++) {
-		printf("=======\n");
-		if (!rt.scene.surfaces[i].hit_function)
-			break;
-		rt.scene.surfaces[i].hit_function(&rt.scene.surfaces[i], VEC3(0, 0, 0),
-										  VEC3(0, 0, 0));
-	}
-	free(rt.scene.surfaces);
-
-	// on_update(&rt);
-
-	// mlx_hook(rt.window.win, DestroyNotify, StructureNotifyMask, on_close,
-	// &rt); mlx_loop(rt.window.mlx);
+    for (int i = 0; rt.scene.surfaces[i].hit_function; i++)
+    {
+        printf("SURFACE: %p\n%f %f %f\n%f\n%f %f %f\n",
+               rt.scene.surfaces[i].hit_function,
+               rt.scene.surfaces[i].sphere->pos.x,
+               rt.scene.surfaces[i].sphere->pos.y,
+               rt.scene.surfaces[i].sphere->pos.z,
+               rt.scene.surfaces[i].sphere->radius,
+               rt.scene.surfaces[i].sphere->color.x,
+               rt.scene.surfaces[i].sphere->color.y,
+               rt.scene.surfaces[i].sphere->color.z);
+    }
+    // on_render(&rt);
+    return (0);
 }

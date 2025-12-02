@@ -12,20 +12,24 @@
 
 #include "../libft.h"
 
-char	*ft_strsep(char **stringp, const char delim)
+char *ft_strsep(char **stringp, const char delim)
 {
-	char	*occur;
-	int		i;
+    char *occur;
+    int i;
 
-	i = 0;
-	while ((*stringp)[i] && (*stringp)[i] != delim)
-		i++;
-	occur = *stringp;
-	if (!occur[i])
-		return (occur);
-	occur[i++] = '\0';
-	while ((*stringp)[i] && (*stringp)[i] == delim)
-		i++;
-	*stringp = &(*stringp)[i];
-	return (occur);
+    i = 0;
+    if (!stringp)
+        return NULL;
+    while ((*stringp) && (*stringp)[i] && (*stringp)[i] != delim)
+        i++;
+    occur = (*stringp);
+    if (occur && !*occur)
+        return NULL;
+    while ((*stringp) && (*stringp)[i] && (*stringp)[i] == delim)
+    {
+        (*stringp)[i] = '\0';
+        i++;
+    }
+    *stringp = (*stringp) + i;
+    return (occur);
 }
