@@ -6,7 +6,7 @@
 /*   By: iboubkri <iboubkri@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/12/09 05:16:42 by iboubkri          #+#    #+#             */
-/*   Updated: 2025/12/11 05:28:40 by iboubkri         ###   ########.fr       */
+/*   Updated: 2025/12/15 03:36:33 by iboubkri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@
 
 typedef struct {
 	t_vec3 normal;
+	t_vec3 p;
 	float t;
 } t_hit;
 
@@ -67,9 +68,7 @@ typedef union u_surface {
 struct s_raytracer {
 	struct s_scene {
 		struct s_camera {
-			t_vec3 fd;
-			t_vec3 up;
-			t_vec3 rt;
+			t_vec3 u, v, w;
 			t_vec3 pos;
 			float fov;
 			struct {

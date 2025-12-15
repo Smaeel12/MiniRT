@@ -1,14 +1,13 @@
 #pragma once
 
 #include "structs.h"
-#define INF INFINITY
 
 static inline t_field_rule *camera_rules(struct s_camera *camera)
 {
 	static t_field_rule camera_rules[4];
 
 	camera_rules[0] = (t_field_rule){&camera->pos, -INF, INF, F_VEC3};
-	camera_rules[1] = (t_field_rule){&camera->fd, -1.0, 1.0, F_VEC3};
+	camera_rules[1] = (t_field_rule){&camera->w, -1.0, 1.0, F_VEC3};
 	camera_rules[2] = (t_field_rule){&camera->fov, 0, 180, F_VALUE};
 	camera_rules[3] = (t_field_rule){NULL, 0, 0, NONE};
 	return (camera_rules);

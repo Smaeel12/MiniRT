@@ -3,6 +3,7 @@
 #include <math.h>
 
 #define FLT_EPSILION 1e-5
+#define INF INFINITY
 
 typedef struct {
 	float x, y, z;
@@ -10,12 +11,24 @@ typedef struct {
 
 typedef t_vec3 t_color3;
 
+#define VLENGHT_SQUARED vlenght_squared
+static inline float vlenght_squared(t_vec3 vec)
+{
+	return (vec.x * vec.x + vec.y * vec.y + vec.z * vec.z);
+}
+
+#define VLENGHT vlenght
+static inline float vlenght(t_vec3 vec)
+{
+	return sqrt(VLENGHT_SQUARED(vec));
+}
+
 #define VNORM vnorm
 static inline t_vec3 vnorm(t_vec3 vec)
 {
 	double len;
 
-	len = sqrt(vec.x * vec.x + vec.y * vec.y + vec.z * vec.z);
+	len = VLENGHT(vec);
 	return ((t_vec3){vec.x / len, vec.y / len, vec.z / len});
 }
 

@@ -46,7 +46,7 @@ int parse_vector(t_field_rule rule, char *vector)
 	input = rule.field;
 	while (i < 3) {
 		value = ft_strsep(&vector, ',');
-		if (!*value)
+		if (!value || !*value)
 			return fallback_message(ERR_EXPECTED_VECTOR), -1;
 
 		input[i] = atof(value);	 // atof needs implement
@@ -67,7 +67,7 @@ int parse_fields(char *tokens, t_field_rule rules[])
 		value = ft_strsep(&tokens, ' ');
 		if (!rules[i].field && !value)
 			break;
-		if (!value)
+		if (!value || !*value)
 			return fallback_message(ERR_MISSING_FIELD), -1;
 		if (!rules[i].field)
 			return fallback_message(ERR_UNEXPECTED_FIELD), -1;
@@ -111,8 +111,7 @@ int parse_objects(int fd, t_parser_rule rules[])
 		if (parse_fields(line, ((void *(*)(void *))rules[i].rules)(
 								   rules[i].object + (curr * (id[0] != 'C') *
 													  sizeof(t_surface)))))
-			return (close(fd), free(id), free(rules[1].object),
-					fallback_message(ERR_FAILED_PARSER), exit(-1), -1);
+			return (close(fd), free(id), free(rules[1].object), exit(-1), -1);
 
 		curr += (id[0] != 'C' && curr < MAX_SURFACES - 1);
 		free(id);
