@@ -2,17 +2,27 @@
 
 t_parser_rule *parser_rules(struct s_scene *scene)
 {
-	static t_parser_rule parser_rules[5];
+	static t_parser_rule parser_rules[7];
 
 	parser_rules[0] = (t_parser_rule){
 		"C", 2, &scene->camera, (t_field_rule * (*)(void *)) camera_rules};
-	parser_rules[1] = (t_parser_rule){"pl", 3, scene->surfaces,
-									  (t_field_rule * (*)(void *)) plane_rules};
+
+	parser_rules[1] = (t_parser_rule){"L", 2, &scene->light,
+									  (t_field_rule * (*)(void *)) light_rules};
+
 	parser_rules[2] = (t_parser_rule){
+		"A", 2, &scene->ambient, (t_field_rule * (*)(void *)) ambient_rules};
+
+	parser_rules[3] = (t_parser_rule){"pl", 3, scene->surfaces,
+									  (t_field_rule * (*)(void *)) plane_rules};
+
+	parser_rules[4] = (t_parser_rule){
 		"sp", 3, scene->surfaces, (t_field_rule * (*)(void *)) sphere_rules};
-	parser_rules[3] = (t_parser_rule){
+
+	parser_rules[5] = (t_parser_rule){
 		"cy", 3, scene->surfaces, (t_field_rule * (*)(void *)) cylinder_rules};
-	parser_rules[4] = (t_parser_rule){NULL, 0, NULL, NULL};
+
+	parser_rules[6] = (t_parser_rule){NULL, 0, NULL, NULL};
 	return (parser_rules);
 }
 
@@ -80,8 +90,10 @@ int parse_fields(char *tokens, t_field_rule rules[])
 	return (0);
 }
 
+#define ERR_REDEFINE_OBJECT "Syntax Error: redifining object"
 int parse_objects(int fd, t_parser_rule rules[])
 {
+	int bitmap = 0;
 	char *line;
 	char *id;
 	int curr;
@@ -104,16 +116,24 @@ int parse_objects(int fd, t_parser_rule rules[])
 		while (rules[i].field_name &&
 			   ft_strncmp(rules[i].field_name, id, rules[i].nchar))
 			i++;
-		if (!rules[i].field_name)
-			return (close(fd), free(id), free(rules[1].object),
-					fallback_message(ERR_UNKNOWN_OBJECT), exit(-1), -1);
 
-		if (parse_fields(line, ((void *(*)(void *))rules[i].rules)(
-								   rules[i].object + (curr * (id[0] != 'C') *
-													  sizeof(t_surface)))))
-			return (close(fd), free(id), free(rules[1].object), exit(-1), -1);
+		if (!rules[i].field_name) {
+			dprintf(2, "%s %s\n", id, ERR_UNKNOWN_OBJECT);
+			return (close(fd), free(id), exit(-1), -1);
+		}
 
-		curr += (id[0] != 'C' && curr < MAX_SURFACES - 1);
+		if (rules[i].nchar < 3 && bitmap >> (*id - 'A')) {
+			dprintf(2, "%s %s\n", ERR_REDEFINE_OBJECT, id);
+			return (close(fd), free(id), exit(-1), -1);
+		}
+		bitmap |= (rules[i].nchar < 3) * 1 << (*id - 'A');
+
+		if (parse_fields(
+				line, ((void *(*)(void *))rules[i].rules)(
+						  rules[i].object +
+						  ((rules[i].nchar > 2) * curr * sizeof(t_surface)))))
+			return (close(fd), free(id), exit(-1), -1);
+		curr += (rules[i].nchar > 2);
 		free(id);
 	}
 	close(fd);

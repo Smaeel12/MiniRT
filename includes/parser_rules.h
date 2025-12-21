@@ -19,7 +19,7 @@ static inline t_field_rule *sphere_rules(t_sphere *sphere)
 
 	sphere->hit_function = sphere_intersection;
 	sphere_rules[0]		 = (t_field_rule){&sphere->pos, -INF, INF, F_VEC3};
-	sphere_rules[1]		 = (t_field_rule){&sphere->radius, 0, INF, F_VALUE};
+	sphere_rules[1]		 = (t_field_rule){&sphere->diameter, 0, INF, F_VALUE};
 	sphere_rules[2]		 = (t_field_rule){&sphere->color, 0, 255, F_VEC3};
 	sphere_rules[3]		 = (t_field_rule){NULL, 0, 0, NONE};
 	return (sphere_rules);
@@ -43,7 +43,7 @@ static inline t_field_rule *cylinder_rules(t_cylinder *cylinder)
 
 	cylinder->hit_function = cylinder_intersection;
 	cylinder_rules[0]	   = (t_field_rule){&cylinder->pos, -INF, INF, F_VEC3};
-	cylinder_rules[1] = (t_field_rule){&cylinder->normal, -1.0, 1.0, F_VEC3};
+	cylinder_rules[1]	   = (t_field_rule){&cylinder->axis, -1.0, 1.0, F_VEC3};
 	cylinder_rules[2] = (t_field_rule){&cylinder->diameter, 0, INF, F_VALUE};
 	cylinder_rules[3] = (t_field_rule){&cylinder->height, 0, INF, F_VALUE};
 	cylinder_rules[4] = (t_field_rule){&cylinder->color, 0, 255, F_VEC3};
@@ -51,17 +51,17 @@ static inline t_field_rule *cylinder_rules(t_cylinder *cylinder)
 	return (cylinder_rules);
 }
 
-static inline t_field_rule *ambiant_rules(t_ambiant *ambiant)
+static inline t_field_rule *ambient_rules(struct s_ambient *ambient)
 {
-	static t_field_rule ambiant_rules[3];
+	static t_field_rule ambient_rules[3];
 
-	ambiant_rules[0] = (t_field_rule){&ambiant->ratio, 0.0, 1.0, F_VALUE};
-	ambiant_rules[1] = (t_field_rule){&ambiant->color, 0, 255, F_VEC3};
-	ambiant_rules[2] = (t_field_rule){NULL, 0, 0, NONE};
-	return (ambiant_rules);
+	ambient_rules[0] = (t_field_rule){&ambient->ratio, 0.0, 1.0, F_VALUE};
+	ambient_rules[1] = (t_field_rule){&ambient->color, 0, 255, F_VEC3};
+	ambient_rules[2] = (t_field_rule){NULL, 0, 0, NONE};
+	return (ambient_rules);
 }
 
-static inline t_field_rule *light_rules(t_light *light)
+static inline t_field_rule *light_rules(struct s_light *light)
 {
 	static t_field_rule light_rules[4];
 

@@ -32,7 +32,6 @@ int on_close(struct s_raytracer *rt)
 	if (rt->win.ptr)
 		mlx_destroy_window(rt->mlx, rt->win.ptr);
 	mlx_destroy_display(rt->mlx);
-	free(rt->scene.surfaces);
 	free(rt->acumm);
 	free(rt->mlx);
 	exit(0);
@@ -43,14 +42,25 @@ int on_close(struct s_raytracer *rt)
 
 #define WRITE_COLOR(vec) ((int)vec.x << 16 | (int)vec.y << 8 | (int)vec.z)
 
+#define HADAMARD_PRODUCT hadamard_product
+static inline t_vec3 hadamard_product(t_vec3 a, t_vec3 b)
+{
+	return (t_vec3){a.x * b.x, a.y * b.y, a.z * b.z};
+}
+
 int mlx_pixel_put_to_image(t_img *image, int x, int y, t_color3 color)
 {
 	char *dst;
 
 	dst = image->data + y * image->size_line + x * image->abpp / 8;
-	*(unsigned int *)dst = ((int)(CLAMP(sqrt(color.x)) * 256) << 16) |
-						   ((int)(CLAMP(sqrt(color.y)) * 256) << 8) |
-						   ((int)(CLAMP(sqrt(color.z)) * 256) << 0);
+
+	color = (t_color3){CLAMP(sqrt(color.x)), CLAMP(sqrt(color.y)),
+					   CLAMP(sqrt(color.z))};
+	color = VMUL(256, color);
+
+	*(unsigned int *)dst =
+		(int)(color.x) << 16 | (int)(color.y) << 8 | (int)(color.z);
+
 	return 0;
 }
 
@@ -84,10 +94,39 @@ static inline t_vec3 rand_on_hemisphere(const t_vec3 normal)
 	return VMUL(-1, unit_vec);
 }
 
+#define MAX_DEPTH 10
+
+t_color3 per_pixel(struct s_scene *scene, t_vec3 org, t_vec3 dir)
+{
+	t_hit hit = ((t_hit){NULL, (t_vec3){-1, -1, -1}, (t_vec3){0, 0, 0}, INF});
+
+	if (scene->surfaces->hit_function)
+		hit = scene->surfaces->hit_function(scene->surfaces, org, dir);
+
+	if (hit.t == INF) {
+		return (t_color3){0, 0, 0};
+	}
+
+	t_vec3 lightvec = VNORM(VSUB(scene->light.pos, hit.p));
+	float dot		= CLAMP(VDOT(hit.normal, lightvec));
+
+	t_color3 obj_color = VMUL(1 / 255.0, hit.surface->color);
+	// APPLY AMBIENT
+	t_vec3 ambient =
+		HADAMARD_PRODUCT(VMUL(1.0f / 255.0f, scene->ambient.color), obj_color);
+	ambient = VMUL(scene->ambient.ratio, ambient);
+
+	// APPLY LIGHT
+	t_vec3 diffuse =
+		HADAMARD_PRODUCT(VMUL(1 / 255.0, scene->light.color), obj_color);
+	diffuse = VMUL(scene->light.ratio * dot, diffuse);
+
+	return VADD(diffuse, ambient);
+}
+
 int on_render(struct s_raytracer *rt)
 {
 	t_vec3 dir;
-	t_hit hit;
 	int x;
 	int y;
 
@@ -95,41 +134,26 @@ int on_render(struct s_raytracer *rt)
 
 	float aratio = (float)rt->win.width / (float)rt->win.height;
 
-	y	= 0;
-	hit = ((t_hit){(t_vec3){-1, -1, -1}, (t_vec3){0, 0, 0}, INF});
+	y = 0;
 	while (y < rt->win.height) {
 		x = 0;
 		while (x < rt->win.width) {
-			dir = VSUB(VADD(VADD(rt->scene.camera.viewport.px00loc,
-								 VMUL(x + rand_float(-0.5, 0.5),
-									  rt->scene.camera.viewport.delta_u)),
-							VMUL(y + rand_float(-0.5, 0.5),
-								 rt->scene.camera.viewport.delta_v)),
-					   rt->scene.camera.pos);
+			dir = VNORM(VSUB(VADD(VADD(rt->scene.camera.viewport.px00loc,
+									   VMUL(x + rand_float(-0.5, 0.5),
+											rt->scene.camera.viewport.delta_u)),
+								  VMUL(y + rand_float(-0.5, 0.5),
+									   rt->scene.camera.viewport.delta_v)),
+							 rt->scene.camera.pos));
 
-#define MAX_DEPTH 10
-			float a			   = 0.5 * (dir.y + 1.0);
-			t_vec3 pixel_color = VADD(VMUL(1 - a, ((t_color3){1.0, 1.0, 1.0})),
-									  VMUL(a, ((t_color3){0.5, 0.7, 1.0})));
-			t_vec3 origin	   = rt->scene.camera.pos;
-			if (rt->scene.surfaces->hit_function) {
-				for (int i = 0; i < MAX_DEPTH; i++) {
-					hit = rt->scene.surfaces->hit_function(rt->scene.surfaces,
-														   origin, dir);
-					if (hit.t == INF)
-						break;
-					pixel_color = VMUL(0.1, pixel_color);
-					dir	   = VADD(hit.normal, rand_on_hemisphere(hit.normal));
-					origin = hit.p;
-				}
-			}
+			t_color3 pixel_color =
+				per_pixel(&rt->scene, rt->scene.camera.pos, dir);
 
 			rt->acumm[y * rt->win.width + x] =
 				VADD(rt->acumm[y * rt->win.width + x], pixel_color);
 
 			mlx_pixel_put_to_image(
 				rt->win.frame, x, y,
-				VMUL(1.0 / rt->nsamples, rt->acumm[y * rt->win.width + x]));
+				VMUL(1.0f / rt->nsamples, rt->acumm[y * rt->win.width + x]));
 			x++;
 		}
 		y++;
@@ -164,14 +188,15 @@ int init_camera(struct s_camera *camera, int width, int height)
 	camera->fov		= tan(camera->fov * 0.5 * M_PI / 180.0);
 	viewport_width	= 2 * camera->fov * focal_lenght;
 	viewport_height = viewport_width / aspect_ratio;
-	// CAMERA BASE
-	camera->w = VNORM(VSUB(camera->pos, camera->w));
-	camera->v = ((t_vec3){0, 1, 0});
-	if (camera->w.y == 1)
-		camera->v = ((t_vec3){0, 0, 1});
 
-	camera->u = VNORM(VCROSS(camera->v, camera->w));
-	camera->v = VNORM(VCROSS(camera->w, camera->u));
+	// CAMERA BASE
+	camera->w = VNORM(VMUL(-focal_lenght, camera->w));
+	camera->v = (t_vec3){0, 1, 0};
+	if (fabs(camera->w.y) > 0.9)
+		camera->v = (t_vec3){0, 0, 1};
+	camera->u = VNORM(VCROSS(camera->w, camera->v));
+	camera->v = VNORM(VCROSS(camera->u, camera->w));
+
 	// VIEWPORT
 	camera->viewport.delta_u = VMUL(viewport_width, camera->u);
 	camera->viewport.delta_v = VMUL(-viewport_height, camera->v);
@@ -186,21 +211,31 @@ int init_camera(struct s_camera *camera, int width, int height)
 		VMUL(0.5, VADD(camera->viewport.delta_u, camera->viewport.delta_v)));
 	return 0;
 }
+#define ERR_INV_EXT "System Error: Invalid extension the file should end .rt"
+
+int keypress(int keycode, struct s_raytracer *rt)
+{
+	on_close(rt);
+	return 0;
+}
 
 int main(int ac, char **av)
 {
 	struct s_raytracer rt;
+	char *ext;
 	int fd;
 
 	if (ac < 2)
 		return (fallback_message(ERR_NO_FILE), -1);
 
+	ext = ft_strchr(av[1], '.');
+	if (!ext || ft_strncmp(".rt", ext, 4))
+		return (fallback_message(ERR_INV_EXT), -1);
+
 	ft_bzero(&rt, sizeof(struct s_raytracer));
 
-	rt.win.width	  = 1080;
-	rt.win.height	  = rt.win.width / ASPECT_RATIO;
-	rt.scene.surfaces = malloc(MAX_SURFACES * sizeof(t_surface));
-	ft_bzero(rt.scene.surfaces, MAX_SURFACES * sizeof(t_surface));
+	rt.win.width  = 1080;
+	rt.win.height = rt.win.width / ASPECT_RATIO;
 	parse_objects(open(av[1], O_RDWR), parser_rules(&rt.scene));
 	init_camera(&rt.scene.camera, rt.win.width, rt.win.height);
 
@@ -213,8 +248,11 @@ int main(int ac, char **av)
 
 	rt.nsamples = 1;
 
+	mlx_hook(rt.win.ptr, KeyPress, KeyPressMask, (int (*)(int, void *))keypress,
+			 &rt);
 	mlx_hook(rt.win.ptr, DestroyNotify, StructureNotifyMask,
 			 (int (*)(void *))on_close, &rt);
+
 	mlx_loop_hook(rt.mlx, on_render, &rt);
 	// on_render(&rt);
 	mlx_loop(rt.mlx);

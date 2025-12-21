@@ -5,9 +5,6 @@
 #include "../Libft/libft.h"
 #include "structs.h"
 
-#ifndef MAX_SURFACES
-#define MAX_SURFACES 15
-#endif
 
 #define ERR_NO_FILE \
 	"Usage Error: No input file provided. Please specify a scene file.\n"
