@@ -1,86 +1,76 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   parser_utils.c                                     :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: iboubkri <iboubkri@student.1337.ma>        +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/12/29 04:45:04 by iboubkri          #+#    #+#             */
+/*   Updated: 2025/12/30 23:52:42 by iboubkri         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "includes/parser.h"
 
-t_parser_rule *parser_rules(struct s_scene *scene)
+int	parse_value(t_field_rule rule, char *float_value)
 {
-	static t_parser_rule parser_rules[7];
+	float	*input;
+	float	v;
 
-	parser_rules[0] = (t_parser_rule){
-		"C", 2, &scene->camera, (t_field_rule * (*)(void *)) camera_rules};
-
-	parser_rules[1] = (t_parser_rule){"L", 2, &scene->light,
-									  (t_field_rule * (*)(void *)) light_rules};
-
-	parser_rules[2] = (t_parser_rule){
-		"A", 2, &scene->ambient, (t_field_rule * (*)(void *)) ambient_rules};
-
-	parser_rules[3] = (t_parser_rule){"pl", 3, scene->surfaces,
-									  (t_field_rule * (*)(void *)) plane_rules};
-
-	parser_rules[4] = (t_parser_rule){
-		"sp", 3, scene->surfaces, (t_field_rule * (*)(void *)) sphere_rules};
-
-	parser_rules[5] = (t_parser_rule){
-		"cy", 3, scene->surfaces, (t_field_rule * (*)(void *)) cylinder_rules};
-
-	parser_rules[6] = (t_parser_rule){NULL, 0, NULL, NULL};
-	return (parser_rules);
-}
-
-int parse_value(t_field_rule rule, char *float_value)
-{
-	float *input;
-	int i;
-
-	i	  = 0;
 	input = rule.field;
-	while (float_value[i] &&
-		   ((float_value[i] <= '9' && float_value[i] >= '0') ||
-			float_value[i] == '.'))
-		i++;
-	if (float_value[i])
-		return fallback_message(ERR_EXPECTED_FLOAT), -1;
-
-	*input = atof(float_value);	 // atof needs implement
-	if (*input > rule.max || *input < rule.min)
-		return fallback_message(ERR_VALUE_OUT_RANGE), -1;
-
+	if (!float_value || !*float_value)
+		return (fallback_message(ERR_EXPECTED_FLOAT), -1);
+	v = ft_atof(float_value);
+	if (!isfinite(v))
+		return (fallback_message(ERR_VALUE_OUT_RANGE), -1);
+	if (v > rule.max || v < rule.min)
+		return (fallback_message(ERR_VALUE_OUT_RANGE), -1);
+	*input = v;
 	return (0);
 }
-int parse_vector(t_field_rule rule, char *vector)
-{
-	float *input;
-	char *value;
-	int i;
 
-	i	  = 0;
+int	parse_vector(t_field_rule rule, char *vector)
+{
+	float	*input;
+	char	*value;
+	int		i;
+	float	v;
+
 	input = rule.field;
-	while (i < 3) {
+	i = 0;
+	while (i < 3)
+	{
 		value = ft_strsep(&vector, ',');
 		if (!value || !*value)
-			return fallback_message(ERR_EXPECTED_VECTOR), -1;
-
-		input[i] = atof(value);	 // atof needs implement
-		if (input[i] > rule.max || input[i] < rule.min)
-			return fallback_message(ERR_VALUE_OUT_RANGE), -1;
-
+			return (fallback_message(ERR_EXPECTED_VECTOR), -1);
+		v = ft_atof(value);
+		if (!isfinite(v))
+			return (fallback_message(ERR_VALUE_OUT_RANGE), -1);
+		if (v > rule.max || v < rule.min)
+			return (fallback_message(ERR_VALUE_OUT_RANGE), -1);
+		input[i] = v;
 		i++;
 	}
+	if (vector && *vector)
+		return (fallback_message(ERR_EXPECTED_VECTOR), -1);
 	return (0);
 }
-int parse_fields(char *tokens, t_field_rule rules[])
+
+int	parse_fields(char *tokens, t_field_rule rules[])
 {
-	char *value;
-	int i;
+	char	*value;
+	int		i;
 
 	i = 0;
-	while (true) {
+	while (true)
+	{
 		value = ft_strsep(&tokens, ' ');
 		if (!rules[i].field && !value)
-			break;
+			break ;
 		if (!value || !*value)
-			return fallback_message(ERR_MISSING_FIELD), -1;
+			return (fallback_message(ERR_MISSING_FIELD), -1);
 		if (!rules[i].field)
-			return fallback_message(ERR_UNEXPECTED_FIELD), -1;
+			return (fallback_message(ERR_UNEXPECTED_FIELD), -1);
 		if (rules[i].type == F_VEC3 && parse_vector(rules[i], value))
 			return (-1);
 		else if (rules[i].type == F_VALUE && parse_value(rules[i], value))
@@ -90,52 +80,51 @@ int parse_fields(char *tokens, t_field_rule rules[])
 	return (0);
 }
 
-#define ERR_REDEFINE_OBJECT "Syntax Error: redifining object"
-int parse_objects(int fd, t_parser_rule rules[])
+t_parser_rule	*parser_rules(struct s_scene *scene)
 {
-	int bitmap = 0;
-	char *line;
-	char *id;
-	int curr;
-	int i;
+	static t_parser_rule	parser_rules[7];
 
+	parser_rules[0] = (t_parser_rule){(t_field_rule
+			* (*)(void *)) ambient_rules, &scene->ambient, "A", 0, 0};
+	parser_rules[1] = (t_parser_rule){(t_field_rule * (*)(void *)) camera_rules,
+		&scene->camera, "C", 0, 0};
+	parser_rules[2] = (t_parser_rule){(t_field_rule * (*)(void *)) light_rules,
+		&scene->light, "L", 0, 0};
+	parser_rules[3] = (t_parser_rule){(t_field_rule * (*)(void *)) sphere_rules,
+		scene->surfaces, "sp", 0, sizeof(t_surface)};
+	parser_rules[4] = (t_parser_rule){(t_field_rule * (*)(void *)) plane_rules,
+		scene->surfaces, "pl", 0, sizeof(t_surface)};
+	parser_rules[5] = (t_parser_rule){(t_field_rule
+			* (*)(void *)) cylinder_rules, scene->surfaces, "cy", 0,
+		sizeof(t_surface)};
+	parser_rules[6] = (t_parser_rule){0};
+	return (parser_rules);
+}
+
+int	parse_file(int fd, t_parser_rule rules[])
+{
+	char *(line), *(head), *(id);
+	int (curr), (i);
 	curr = 0;
-	if (fd < 0)
-		return (fallback_message(ERR_FAILED_OPEN), exit(-1), -1);
-
-	while (true) {
-		i	 = 0;
-		line = get_next_line(fd);
-		if (!line)
-			break;
+	line = get_next_line(fd);
+	while (line)
+	{
+		i = 0;
+		head = line;
 		id = ft_strsep(&line, ' ');
-		if (!id) {
-			free(line);
-			continue;
-		}
-		while (rules[i].field_name &&
-			   ft_strncmp(rules[i].field_name, id, rules[i].nchar))
+		while (id && rules[i].name && ft_strcmp(rules[i].name, id))
 			i++;
-
-		if (!rules[i].field_name) {
-			dprintf(2, "%s %s\n", id, ERR_UNKNOWN_OBJECT);
-			return (close(fd), free(id), exit(-1), -1);
-		}
-
-		if (rules[i].nchar < 3 && bitmap >> (*id - 'A')) {
-			dprintf(2, "%s %s\n", ERR_REDEFINE_OBJECT, id);
-			return (close(fd), free(id), exit(-1), -1);
-		}
-		bitmap |= (rules[i].nchar < 3) * 1 << (*id - 'A');
-
-		if (parse_fields(
-				line, ((void *(*)(void *))rules[i].rules)(
-						  rules[i].object +
-						  ((rules[i].nchar > 2) * curr * sizeof(t_surface)))))
-			return (close(fd), free(id), exit(-1), -1);
-		curr += (rules[i].nchar > 2);
-		free(id);
+		if (id && ++rules[i].count && !rules[i].name)
+			return (fallback_message(ERR_UNKNOWN_OBJECT), 1);
+		if (id && id[0] >= 'A' && id[0] <= 'Z' && rules[i].count > 1)
+			return (fallback_message(ERR_REDEFINE_OBJECT), 1);
+		if (id && parse_fields(line, rules[i].func((char *)rules[i].object
+					+ curr * rules[i].size)))
+			return (1);
+		curr += id && !(id[0] >= 'A' && id[0] <= 'Z') && (curr
+				+ 1 < MAX_SURFACES - 1);
+		line = get_next_line(fd);
+		free(head);
 	}
-	close(fd);
 	return (0);
 }

@@ -5,5 +5,13 @@
         "unistd.h": "c",
         "parser_utils.h": "c",
         "main.h": "c"
+    },
+    "C_Cpp.clang_format_fallbackStyle": "{BasedOnStyle: Microsoft, IndentWidth: 4, UseTab: Always, TabWidth: 4, BreakBeforeBraces: Linux, AllowShortFunctionsOnASingleLine: None, IndentCaseLabels: false, PointerAlignment: Right, SortIncludes: false}",
+    "C_Cpp.clang_format_style": "{BasedOnStyle: Microsoft, IndentWidth: 4, UseTab: Always, TabWidth: 4, BreakBeforeBraces: Linux, AllowShortFunctionsOnASingleLine: None, IndentCaseLabels: false, PointerAlignment: Right, SortIncludes: false}",
+    "C_Cpp.vcFormat.space.pointerReferenceAlignment": "ignore",
+    "terminal.integrated.tabs.defaultIcon": "gist-private",
+    "editor.defaultFormatter": "vscode.microsoft-authentication",
+    "[c]": {
+        "editor.defaultFormatter": "ms-vscode.cpptools"
     }
 }

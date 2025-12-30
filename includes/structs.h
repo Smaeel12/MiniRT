@@ -6,7 +6,7 @@
 /*   By: iboubkri <iboubkri@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/12/09 05:16:42 by iboubkri          #+#    #+#             */
-/*   Updated: 2025/12/20 23:15:35 by iboubkri         ###   ########.fr       */
+/*   Updated: 2025/12/30 21:47:11 by iboubkri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,8 +28,8 @@ typedef struct {
 typedef struct {
 	t_hit (*hit_function)(union u_surface *, t_vec3, t_vec3);
 	t_color3 color;
-
 	t_vec3 pos;
+
 	t_vec3 axis;
 	float diameter;
 	float height;
@@ -38,16 +38,16 @@ typedef struct {
 typedef struct {
 	t_hit (*hit_function)(union u_surface *, t_vec3, t_vec3);
 	t_color3 color;
-
 	t_vec3 pos;
+
 	t_vec3 normal;
 } t_plane;
 
 typedef struct {
 	t_hit (*hit_function)(union u_surface *, t_vec3, t_vec3);
 	t_color3 color;
-
 	t_vec3 pos;
+
 	float diameter;
 } t_sphere;
 
@@ -55,6 +55,7 @@ typedef union u_surface {
 	struct {
 		t_hit (*hit_function)(union u_surface *, t_vec3, t_vec3);
 		t_color3 color;
+		t_vec3 pos;
 	};
 	t_cylinder cylinder;
 	t_sphere sphere;
@@ -62,7 +63,7 @@ typedef union u_surface {
 } t_surface;
 
 #ifndef MAX_SURFACES
-#define MAX_SURFACES 15
+#define MAX_SURFACES 100
 #endif
 
 struct s_raytracer {
@@ -73,8 +74,8 @@ struct s_raytracer {
 			t_vec3 u, v, w;
 			float fov;
 			struct {
-				t_vec3 delta_u, delta_v, px00loc;
-			} viewport;
+				t_vec3 du, dv, px00loc;
+			} vp;
 		} camera;
 		struct s_ambient {
 			t_vec3 color;
@@ -111,8 +112,9 @@ typedef struct {
 } t_field_rule;
 
 typedef struct {
-	char *field_name;
-	int nchar;
+	t_field_rule *(*func)(void *);
 	void *object;
-	t_field_rule *(*rules)(void *);
+	char *name;
+	int count;
+	int size;
 } t_parser_rule;

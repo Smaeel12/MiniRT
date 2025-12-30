@@ -1,111 +1,113 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   hit_functions.c                                    :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: iboubkri <iboubkri@student.1337.ma>        +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/12/29 04:39:56 by iboubkri          #+#    #+#             */
+/*   Updated: 2025/12/30 23:53:02 by iboubkri         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "includes/structs.h"
 #include "includes/vectors.h"
 
-t_hit plane_intersection(t_surface *surface, t_vec3 org, t_vec3 dir)
+int	solve_quadratic(float a, float b, float c, float roots[])
 {
-	t_plane *plane = (t_plane *)surface++;
+	float	disc;
+	float	sqrt_disc;
 
-	t_hit hit = ((t_hit){NULL, (t_vec3){-1, -1, -1}, (t_vec3){0, 0, 0}, INF});
-
-	if (surface->hit_function)
-		hit = surface->hit_function(surface, org, dir);
-
-	float denom = VDOT(plane->normal, dir);
-	if (fabs(denom) < 1e-6)
-		return hit;
-
-	t_vec3 oc  = VSUB(plane->pos, org);
-	float root = VDOT(oc, plane->normal) / denom;
-
-	if (root < 1e-6 || root > hit.t)
-		return hit;
-
-	float normal_direction = (denom < 0) ? 1.0f : -1.0f;
-
-	return ((t_hit){(t_surface *)plane, VMUL(normal_direction, plane->normal),
-					VADD(org, VMUL(root, dir)), root});
-}
-
-t_hit sphere_intersection(t_surface *surface, t_vec3 org, t_vec3 dir)
-{
-	t_sphere *sphere = (t_sphere *)surface++;
-
-	t_hit hit = ((t_hit){NULL, (t_vec3){-1, -1, -1}, (t_vec3){0, 0, 0}, INF});
-
-	if (surface->hit_function)
-		hit = surface->hit_function(surface, org, dir);
-
-	t_vec3 oc = VSUB(sphere->pos, org);
-	float a	  = VDOT(dir, dir);
-	float b	  = -2.0f * VDOT(dir, oc);
-
-	float radius = sphere->diameter / 2;
-	float c		 = VDOT(oc, oc) - radius * radius;
-
-	float disc = b * b - 4 * a * c;
-
+	roots[0] = INF;
+	roots[1] = INF;
+	disc = b * b - 4 * a * c;
 	if (disc < 0.0)
-		return hit;
-
-	float sqrt_disc = sqrt(disc);
-
-	float root = (-b - sqrt_disc) / (2.0f * a);
-	if (root < 0.001)
-		root = (-b + sqrt_disc) / (2.0f * a);
-	if (root < 0.001 || root > hit.t)
-		return hit;
-
-	t_vec3 hit_point = VADD(org, VMUL(root, dir));
-	t_vec3 normal	 = VMUL(1 / radius, VSUB(hit_point, sphere->pos));
-
-	return (((t_hit){(t_surface *)sphere, normal, hit_point, root}));
-}
-
-t_hit cylinder_intersection(t_surface *surface, t_vec3 org, t_vec3 dir)
-{
-	t_cylinder *cylinder = (t_cylinder *)surface++;
-
-	t_hit hit = ((t_hit){NULL, (t_vec3){-1, -1, -1}, (t_vec3){0, 0, 0}, INF});
-
-	if (surface->hit_function)
-		hit = surface->hit_function(surface, org, dir);
-
-	// cylinder->axis = VNORM(cylinder->axis);
-	t_vec3 oc	   = VSUB(org, cylinder->pos);
-	float dot_dv   = VDOT(dir, cylinder->axis);
-	float dot_xv   = VDOT(oc, cylinder->axis);
-
-	float a		 = VDOT(dir, dir) - dot_dv * dot_dv;
-	float b		 = 2.0f * (VDOT(dir, oc) - dot_dv * dot_xv);
-	float radius = cylinder->diameter / 2.0f;
-
-	float c = VDOT(oc, oc) - (dot_xv * dot_xv) - radius * radius;
-
-	float disc = b * b - 4 * a * c;
-	if (disc < 0.0)
-		return hit;
-
-	float sqrt_disc = sqrt(disc);
-
-	float root = (-b - sqrt_disc) / (2.0f * a);
-	float m	   = dot_dv * root + dot_xv;
-	if (root < 1e-6 || m < 0 || m > cylinder->height) {
-		root = (-b + sqrt_disc) / (2.0f * a);
-		m	 = dot_dv * root + dot_xv;
-		if (root < 1e-6 || m < 0 || m > cylinder->height)
-			return hit;
+		return (1);
+	sqrt_disc = sqrt(disc);
+	roots[0] = (-b - sqrt_disc) / (2.0f * a);
+	roots[1] = (-b + sqrt_disc) / (2.0f * a);
+	if (roots[0] < EPS && roots[1] > EPS)
+	{
+		roots[0] = roots[1];
+		roots[1] = INF;
 	}
+	return (0);
+}
 
-	if (root > hit.t)
-		return hit;
+t_hit	plane_intersection(t_surface *surface, t_vec3 org, t_vec3 dir)
+{
+	t_plane	*plane;
+	t_hit	hit;
+	t_vec3	oc;
+	float	denom;
+	float	root;
 
-	t_vec3 hit_point = VADD(org, VMUL(root, dir));
+	plane = (t_plane *)surface++;
+	hit = (t_hit){NULL, {0}, {0}, INF};
+	if (surface && surface->hit_function)
+		hit = surface->hit_function(surface, org, dir);
+	denom = VDOT(dir, plane->normal);
+	if (fabs(denom) < EPS)
+		return (hit);
+	oc = VSUB(plane->pos, org);
+	root = VDOT(oc, plane->normal) / denom;
+	if (root < EPS || root > hit.t)
+		return (hit);
+	hit = (t_hit){(t_surface *)plane, plane->normal, VADD(org, VMUL(root, dir)),
+		root};
+	if (denom > 0)
+		hit.normal = VMUL(-1, plane->normal);
+	return (hit);
+}
 
-	t_vec3 normal =
-		VNORM(VSUB(hit_point, VADD(cylinder->pos, VMUL(m, cylinder->axis))));
+t_hit	sphere_intersection(t_surface *surface, t_vec3 org, t_vec3 dir)
+{
+	t_sphere	*sphere;
+	t_hit		hit;
+	t_vec3		oc;
+	float		radius;
+	float		roots[2];
 
-	if (VDOT(dir, normal) > 0)
-		normal = VMUL(-1, normal);
+	sphere = (t_sphere *)surface++;
+	hit = (t_hit){NULL, {0}, {0}, INF};
+	if (surface && surface->hit_function)
+		hit = surface->hit_function(surface, org, dir);
+	radius = sphere->diameter / 2;
+	oc = VSUB(sphere->pos, org);
+	if (solve_quadratic(VDOT(dir, dir), -2.0f * VDOT(dir, oc), VDOT(oc, oc)
+			- radius * radius, roots) || roots[0] < EPS || roots[0] > hit.t)
+		return (hit);
+	hit.p = VADD(org, VMUL(roots[0], dir));
+	return (((t_hit){(t_surface *)sphere, VMUL(1 / radius, VSUB(hit.p,
+					sphere->pos)), hit.p, roots[0]}));
+	return (hit);
+}
 
-	return ((t_hit){(t_surface *)cylinder, normal, hit_point, root});
+t_hit	cylinder_intersection(t_surface *surface, t_vec3 org, t_vec3 dir)
+{
+	t_cylinder *(cy) = (t_cylinder *)surface++;
+	t_vec3 (oc) = VSUB(org, cy->pos), dist;
+	t_hit (hit) = {0, {0}, {0}, INF};
+	float (roots[2]), (r) = cy->diameter / 2.f, (h) = cy->height / 2.f, (m),
+		(tc), (s), (dv) = VDOT(dir, cy->axis), (xv) = VDOT(oc, cy->axis);
+	int (i) = -1;
+	if (surface && surface->hit_function)
+		hit = surface->hit_function(surface, org, dir);
+	solve_quadratic(1 - dv * dv, 2 * (VDOT(dir, oc) - dv * xv), VDOT(oc, oc)
+		- xv * xv - r * r, roots);
+	while (++i < 2)
+	{
+		m = xv + roots[i] * dv;
+		if (roots[i] > EPS && roots[i] < hit.t && m >= -h && m <= h)
+			hit = (t_hit){(t_surface *)cy, VNORM(VSUB(VADD(oc, VMUL(roots[i],
+								dir)), VMUL(m, cy->axis))), VADD(org,
+					VMUL(roots[i], dir)), roots[i]};
+		s = 1.0f - 2.0f * i;
+		tc = (s * h - xv) / dv;
+		dist = VSUB(VADD(oc, VMUL(tc, dir)), VMUL(s * h, cy->axis));
+		if (tc > EPS && tc < hit.t && VDOT(dist, dist) <= r * r)
+			hit = (t_hit){(t_surface *)cy, VMUL(s, cy->axis), VADD(org, VMUL(tc,
+						dir)), tc};
+	}
+	return (hit);
 }
